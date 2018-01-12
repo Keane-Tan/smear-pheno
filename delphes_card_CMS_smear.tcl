@@ -49,6 +49,9 @@ set ExecutionPath {
 
   MissingHT
 
+  JetsMomentumSmearing
+  MissingHTSmeared
+
   BTagging
   TauTagging
 
@@ -721,6 +724,29 @@ module Merger MissingHT {
   set MomentumOutputArray momentum
 }
 
+###############################
+# Momentum smearing for jets
+###############################
+
+module MomentumSmearing JetsMomentumSmearing {
+  set InputArray JetEnergyScale/jets
+  set OutputArray jets
+
+  # set ResolutionFormula {resolution formula as a function of eta and pt}
+
+  # resolution formula for jets
+  set ResolutionFormula { 0.1 }
+}
+
+#############################
+# Missing HT merger (smeared)
+#############################
+
+module Merger MissingHTSmeared {
+  add InputArray JetsMomentumSmearing/jets
+  set MomentumOutputArray momentum
+}
+
 
 ###########
 # b-tagging
@@ -816,4 +842,7 @@ module TreeWriter TreeWriter {
   add Branch ScalarHT/energy ScalarHT ScalarHT
 
   add Branch MissingHT/momentum MissingHT MissingET
+
+  add Branch JetsMomentumSmearing/jets JetSmeared Jet
+  add Branch MissingHTSmeared/momentum MissingHTSmeared MissingET
 }
