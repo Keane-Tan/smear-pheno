@@ -843,6 +843,7 @@ module TreeWriter TreeWriter {
 
   add Branch MissingHT/momentum MissingHT MissingET
 
+  add Branch JetEnergyScale/jets JetUnsmeared Jet
   add Branch JetsMomentumSmearing/jets JetSmeared Jet
   add Branch MissingHTSmeared/momentum MissingHTSmeared MissingET
 }
