@@ -617,7 +617,7 @@ module FastJetFinder GenJetFinder {
   set JetAlgorithm 6
   set ParameterR 0.5
 
-  set JetPTMin 20.0
+  set JetPTMin 30.0
 }
 
 #########################
@@ -735,7 +735,7 @@ module MomentumSmearing JetsMomentumSmearing {
   # set ResolutionFormula {resolution formula as a function of eta and pt}
 
   # resolution formula for jets
-  set ResolutionFormula { 0.1 }
+  source jetSmearing.tcl
 }
 
 #############################
