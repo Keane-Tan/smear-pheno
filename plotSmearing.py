@@ -1,8 +1,8 @@
-from ROOT import *
+from argparse import ArgumentParser
 from array import array
 
 class Sample(object):
-    def __init__(self,name,filename,smear=0.0,color=kBlack,style=1,opt="l"):
+    def __init__(self,name,filename,smear=0.0,color=1,style=1,opt="l"):
         self.name = name
         self.nameCleaned = name.replace(" ","_").replace("(","_").replace(")","_").replace(".","_")
         self.filename = filename
@@ -70,24 +70,24 @@ class Sample(object):
         h.GetYaxis().SetTitle("arbitrary units")
         
 class SampleDelphes(Sample):
-    def __init__(self,name,filename,smear=0.0,color=kBlack,style=1,opt="l"):
+    def __init__(self,name,filename,smear=0.0,color=1,style=1,opt="l"):
         super(SampleDelphes,self).__init__(name,filename,smear,color,style,opt)
         self.treename = "Delphes"
         
 class SampleDelphesUnsmeared(SampleDelphes):
-    def __init__(self,name,filename,smear=0.0,color=kBlack,style=1,opt="l"):
+    def __init__(self,name,filename,smear=0.0,color=1,style=1,opt="l"):
         super(SampleDelphesUnsmeared,self).__init__(name,filename,smear,color,style,opt)
         self.jetDraw = "JetUnsmeared.PT"
         self.metDraw = "MissingHT.MET"
         
 class SampleDelphesSmeared(SampleDelphes):
-    def __init__(self,name,filename,smear=0.0,color=kBlack,style=1,opt="l"):
+    def __init__(self,name,filename,smear=0.0,color=1,style=1,opt="l"):
         super(SampleDelphesSmeared,self).__init__(name,filename,smear,color,style,opt)
         self.jetDraw = "JetSmeared.PT"
         self.metDraw = "MissingHTSmeared.MET"
 
 class SampleCMS(Sample):
-    def __init__(self,name,filename,smear=0.0,color=kBlack,style=1,opt="l"):
+    def __init__(self,name,filename,smear=0.0,color=1,style=1,opt="l"):
         super(SampleCMS,self).__init__(name,filename,smear,color,style,opt)
         self.treename = "TreeMaker2/PreSelection"
         self.jetDraw = "Jets.Pt()"
@@ -96,13 +96,11 @@ class SampleCMS(Sample):
 def getRange(samples,attr,logy=False):
     y1 = 1.0e100
     y2 = 0.0
-    print attr
     for sample in samples:
         h = getattr(sample,attr)
         max = h.GetMaximum()
         min = h.GetMinimum()
         if logy: min = h.GetMinimum(0.0)
-        print (min,max)
         if max>y2: y2 = max
         if min<y1: y1 = min
     return (y1,y2)
@@ -128,15 +126,28 @@ def makeLegend(samples,attr,left=False):
 
 # main program    
 if __name__=="__main__":
+    # input arguments
+    parser = ArgumentParser()
+    parser.add_argument("-s","--smearings",dest="smearings",type=str,help="comma-separated list of smearing values")
+    args = parser.parse_args()
+    
+    # check argument and make into list
+    if len(args.smearings)==0:
+        parser.error("Must specify at least one smearing value")
+    smearlist = args.smearings.split(',')
+
+    # import root after parsing arguments
+    from ROOT import *
+
     gStyle.SetOptStat(0)
 
     # set up samples
     samples = [
         SampleCMS("CMS FullSim","root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Run2ProductionV14/Summer16.QCD_Pt_800to1000_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root",color=kBlack,style=7),
-        SampleDelphesUnsmeared("Delphes (unsmeared)","qcd02.root",color=kGray+2,style=1)
+        SampleDelphesUnsmeared("Delphes (unsmeared)","qcd"+smearlist[0]+".root",color=kGray+2,style=1)
     ]
     colors = [kMagenta+2,kMagenta,kBlue,kRed,kOrange+1]
-    for i,num in enumerate(["02","04","06","08","10"]):
+    for i,num in enumerate(smearlist):
         samples.append(SampleDelphesSmeared("Delphes (smeared 0."+num+")","qcd"+num+".root",smear=float("0."+num),color=colors[i],style=1))
         
     for sample in samples:
@@ -150,7 +161,6 @@ if __name__=="__main__":
     jetCan.cd()
     jetLeg = makeLegend(samples,"jetHisto")
     y1,y2 = getRange(samples,"jetHisto",logy=True)
-    print (y1,y2)
     
     first = True
     for sample in samples:
@@ -162,7 +172,7 @@ if __name__=="__main__":
             sample.jetHisto.Draw("hist same")
     jetLeg.Draw("same")
     
-    jetCan.Print("jetpt.png","png")
+    jetCan.Print("jetpt_"+args.smearings+".png","png")
     
     # met plot
     
@@ -170,7 +180,6 @@ if __name__=="__main__":
     metCan.cd()
     metLeg = makeLegend(samples,"metHisto")
     y1,y2 = getRange(samples,"metHisto")
-    print (y1,y2)
     
     first = True
     for sample in samples:
@@ -182,7 +191,7 @@ if __name__=="__main__":
             sample.metHisto.Draw("hist same")
     metLeg.Draw("same")
     
-    metCan.Print("met.png","png")
+    metCan.Print("met_"+args.smearings+".png","png")
     
     # met eff graph
     
@@ -217,5 +226,5 @@ if __name__=="__main__":
     effLine.Draw("same")
     effLeg.Draw("same")
     
-    effCan.Print("eff.png","png")
+    effCan.Print("eff_"+args.smearings+".png","png")
     

@@ -17,3 +17,9 @@ To run Delphes:
 ```
 $LOCAL/delphes/install/bin/DelphesHepMC delphes_card_CMS_smear.tcl qcd.root hepmc.out
 ```
+
+To run smearing tests and analysis:
+```
+./runSmearing.sh
+python -i plotSmearing.py -s 02,04,06,08,10
+```
