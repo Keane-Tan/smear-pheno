@@ -1,6 +1,19 @@
 from argparse import ArgumentParser
 from array import array
 
+class Histo(object):
+    def __init__(self,name="",draw="",bins="",cut="",axis="",effaxis="",logy=False):
+        self.name = name
+        self.draw = draw
+        self.bins = bins
+        self.cut = cut
+        self.axis = axis
+        self.effaxis = effaxis
+        self.logy = logy
+        self.eff = None
+        self.histo = None
+        self.effgraph = None
+
 class Sample(object):
     def __init__(self,name,filename,smear=0.0,color=1,style=1,opt="l"):
         self.name = name
@@ -13,13 +26,11 @@ class Sample(object):
         self.smear = smear
         self.opt = opt
         
-        # changed in descendant classes
-        self.jetDraw = ""
-        self.metDraw = ""
-        
-        # defaults
-        self.jetHisto = None
-        self.metHisto = None
+        # draws changed in descendant classes
+        self.histos = {
+            "jetpt": Histo(name="jetpt",draw="",bins="(100,0,2000)",cut="",axis="jet p_{T} [GeV]",logy=True),
+            "met": Histo(name="met",draw="",bins="(100,0,700)",cut=">200",axis="H_{T}^{miss} [GeV]",effaxis="H_{T}^{miss} > 200 GeV"),
+        }
         
     def initialize(self):
         if len(self.filename)>0:
@@ -36,32 +47,20 @@ class Sample(object):
         if self.tree is None:
             raise ValueError("No tree in sample "+sample.name)
         # generate plots/values
-        self.makeJetHisto()
-        self.makeMetHisto()
-        self.eff = self.getMetEff()
+        for h in self.histos:
+            self.makeHisto(self.histos[h])
         
-    def makeJetHisto(self):
-        if len(self.jetDraw)==0: return
-        hname = "h_jet_"+self.nameCleaned
-        self.tree.Draw(self.jetDraw+">>"+hname+"(100,0,2000)","","goff")
-        self.jetHisto = gDirectory.Get(hname)
-        self.normalizeHisto(self.jetHisto)
-        self.jetHisto.GetXaxis().SetTitle("jet p_{T} [GeV]")
-        
-    def makeMetHisto(self):
-        if len(self.metDraw)==0: return
-        hname = "h_met_"+self.nameCleaned
-        self.tree.Draw(self.metDraw+">>"+hname+"(100,0,700)","","goff")
-        self.metHisto = gDirectory.Get(hname)
-        self.normalizeHisto(self.metHisto)
-        self.metHisto.GetXaxis().SetTitle("H_{T}^{miss} [GeV]")
-        
-    def getMetEff(self):
-        if len(self.metDraw)==0: return
-        denom = self.tree.Draw(self.metDraw,"","goff")
-        numer = self.tree.Draw(self.metDraw,self.metDraw+">200","goff")
-        return float(numer)/float(denom)
-        
+    def makeHisto(self,histo):
+        if len(histo.draw)==0: return
+        hname = "h_"+histo.name+"_"+self.nameCleaned
+        denom = self.tree.Draw(histo.draw+">>"+hname+histo.bins,"","goff")
+        histo.histo = gDirectory.Get(hname)
+        self.normalizeHisto(histo.histo)
+        histo.histo.GetXaxis().SetTitle(histo.axis)
+        if len(histo.cut)>0:
+            numer = self.tree.Draw(histo.draw+">>"+hname+"_numer"+histo.bins,histo.draw+histo.cut,"goff")
+            histo.eff = float(numer)/float(denom)
+
     def normalizeHisto(self,h):
         h.Scale(1.0/h.Integral(0,h.GetNbinsX()))
         h.SetLineColor(self.color)
@@ -77,35 +76,35 @@ class SampleDelphes(Sample):
 class SampleDelphesUnsmeared(SampleDelphes):
     def __init__(self,name,filename,smear=0.0,color=1,style=1,opt="l"):
         super(SampleDelphesUnsmeared,self).__init__(name,filename,smear,color,style,opt)
-        self.jetDraw = "JetUnsmeared.PT"
-        self.metDraw = "MissingHT.MET"
+        self.histos["jetpt"].draw = "JetUnsmeared.PT"
+        self.histos["met"].draw = "MissingHT.MET"
         
 class SampleDelphesSmeared(SampleDelphes):
     def __init__(self,name,filename,smear=0.0,color=1,style=1,opt="l"):
         super(SampleDelphesSmeared,self).__init__(name,filename,smear,color,style,opt)
-        self.jetDraw = "JetSmeared.PT"
-        self.metDraw = "MissingHTSmeared.MET"
+        self.histos["jetpt"].draw = "JetSmeared.PT"
+        self.histos["met"].draw = "MissingHTSmeared.MET"
 
 class SampleCMS(Sample):
     def __init__(self,name,filename,smear=0.0,color=1,style=1,opt="l"):
         super(SampleCMS,self).__init__(name,filename,smear,color,style,opt)
         self.treename = "TreeMaker2/PreSelection"
-        self.jetDraw = "Jets.Pt()"
-        self.metDraw = "MHT"
+        self.histos["jetpt"].draw = "Jets.Pt()"
+        self.histos["met"].draw = "MHT"
     
-def getRange(samples,attr,logy=False):
+def getRange(samples,hist):
     y1 = 1.0e100
     y2 = 0.0
     for sample in samples:
-        h = getattr(sample,attr)
+        h = sample.histos[hist].histo
         max = h.GetMaximum()
         min = h.GetMinimum()
-        if logy: min = h.GetMinimum(0.0)
+        if sample.histos[hist].logy: min = h.GetMinimum(0.0)
         if max>y2: y2 = max
         if min<y1: y1 = min
     return (y1,y2)
 
-def makeLegend(samples,attr,left=False):
+def makeLegend(samples,hist,attr="histo",left=False):
         x1 = 0.55
         x2 = 0.9
         if left:
@@ -120,7 +119,7 @@ def makeLegend(samples,attr,left=False):
         
         leg.AddEntry(None,"QCD p_{T} 800 to 1000","")
         for sample in samples:
-            leg.AddEntry(getattr(sample,attr),sample.name,sample.opt)
+            leg.AddEntry(getattr(sample.histos[hist],attr),sample.name,sample.opt)
             
         return leg
 
@@ -154,77 +153,60 @@ if __name__=="__main__":
         sample.initialize()
         sample.run()
         
-    # jet plot
-    
-    jetCan = TCanvas("jetpt","jetpt")
-    jetCan.SetLogy()
-    jetCan.cd()
-    jetLeg = makeLegend(samples,"jetHisto")
-    y1,y2 = getRange(samples,"jetHisto",logy=True)
-    
-    first = True
-    for sample in samples:
-        if first:
-            sample.jetHisto.GetYaxis().SetRangeUser(y1,y2)
-            sample.jetHisto.Draw("hist")
-            first = False
-        else:
-            sample.jetHisto.Draw("hist same")
-    jetLeg.Draw("same")
-    
-    jetCan.Print("jetpt_"+args.smearings+".png","png")
-    
-    # met plot
-    
-    metCan = TCanvas("met","met")
-    metCan.cd()
-    metLeg = makeLegend(samples,"metHisto")
-    y1,y2 = getRange(samples,"metHisto")
-    
-    first = True
-    for sample in samples:
-        if first:
-            sample.metHisto.GetYaxis().SetRangeUser(y1,y2)
-            sample.metHisto.Draw("hist")
-            first = False
-        else:
-            sample.metHisto.Draw("hist same")
-    metLeg.Draw("same")
-    
-    metCan.Print("met_"+args.smearings+".png","png")
-    
-    # met eff graph
-    
-    x, y = array('d'), array('d')
-    for sample in samples[1:]:
-        x.append(sample.smear)
-        y.append(sample.eff)
-    
-    effGraph = TGraph(len(x),x,y)
-    effGraph.SetMarkerStyle(20)
-    effGraph.SetTitle("")
-    effGraph.GetXaxis().SetTitle("smearing [%]")
-    effGraph.GetYaxis().SetTitle("efficiency for H_{T}^{miss} > 200 GeV")
-  
-    effCan = TCanvas("eff","eff")
-    effCan.cd()
-    effGraph.Draw("ap")
-    effCan.Update()
-    
-    effLine = TLine(effCan.GetUxmin(),samples[0].eff,effCan.GetUxmax(),samples[0].eff)
-    effLine.SetLineColor(kRed)
-    effLine.SetLineStyle(7)
-    
-    gsamples = [
-        SampleCMS("CMS FullSim","",color=kRed,style=7),
-        SampleDelphes("Delphes","",color=kBlack,style=1,opt="p")
-    ]
-    gsamples[0].effGraph = effLine
-    gsamples[1].effGraph = effGraph
-    effLeg = makeLegend(gsamples,"effGraph",left=True)
+    # plots
+    for h in samples[0].histos:
+        can = TCanvas(h,h)
+        if samples[0].histos[h].logy: can.SetLogy()
+        can.cd()
+        leg = makeLegend(samples,h)
+        y1,y2 = getRange(samples,h)
+        
+        first = True
+        for sample in samples:
+            if first:
+                sample.histos[h].histo.GetYaxis().SetRangeUser(y1,y2)
+                sample.histos[h].histo.Draw("hist")
+                first = False
+            else:
+                sample.histos[h].histo.Draw("hist same")
+        leg.Draw("same")
+        
+        can.Print(h+"_"+args.smearings+".png","png")
+        
+        # efficiency plot
+        if samples[0].histos[h].eff is not None:
+            x, y = array('d'), array('d')
+            for sample in samples[1:]:
+                x.append(sample.smear)
+                y.append(sample.histos[h].eff)
+            
+            effGraph = TGraph(len(x),x,y)
+            effGraph.SetMarkerStyle(20)
+            effGraph.SetTitle("")
+            effGraph.GetXaxis().SetTitle("smearing [%]")
+            effGraph.GetYaxis().SetTitle("efficiency for "+samples[0].histos[h].effaxis)
+          
+            effCan = TCanvas("eff_"+h,"eff_"+h)
+            effCan.cd()
+            effGraph.Draw("ap")
+            effCan.Update()
+            
+            effLine = TLine(effCan.GetUxmin(),samples[0].histos[h].eff,effCan.GetUxmax(),samples[0].histos[h].eff)
+            effLine.SetLineColor(kRed)
+            effLine.SetLineStyle(7)
+            
+            gsamples = [
+                SampleCMS("CMS FullSim","",color=kRed,style=7),
+                SampleDelphes("Delphes","",color=kBlack,style=1,opt="p")
+            ]
+            gsamples[0].histos[h].effgraph = effLine
+            gsamples[1].histos[h].effgraph = effGraph
+            effLeg = makeLegend(gsamples,h,"effgraph",left=True)
 
-    effLine.Draw("same")
-    effLeg.Draw("same")
-    
-    effCan.Print("eff_"+args.smearings+".png","png")
+            effLine.Draw("same")
+            effLeg.Draw("same")
+            
+            effCan.Print("eff_"+h+"_"+args.smearings+".png","png")
+
+    # fin
     
