@@ -41,6 +41,7 @@ set ExecutionPath {
   GenMissingET
   
   FastJetFinder
+  FatFastJetFinder
   FatJetFinder
 
   JetEnergyScale
@@ -649,6 +650,22 @@ module FastJetFinder FastJetFinder {
   set JetPTMin 20.0
 }
 
+#######################
+# CA11 Jet (FatFastJet)
+#######################
+
+module FastJetFinder FatFastJetFinder {
+  set InputArray FastJetFinder/jets
+
+  set OutputArray jets
+
+  # algorithm: 1 CDFJetClu, 2 MidPoint, 3 SIScone, 4 kt, 5 Cambridge/Aachen, 6 antikt
+  set JetAlgorithm 5
+  set ParameterR 1.1
+
+  set JetPTMin 20.0
+}
+
 ##################
 # Fat Jet finder
 ##################
@@ -837,6 +854,7 @@ module TreeWriter TreeWriter {
   add Branch UniqueObjectFinder/muons Muon Muon
 
   add Branch FatJetFinder/jets FatJet Jet
+  add Branch FatFastJetFinder/jets FatFastJet Jet
 
   add Branch MissingET/momentum MissingET MissingET
   add Branch ScalarHT/energy ScalarHT ScalarHT
