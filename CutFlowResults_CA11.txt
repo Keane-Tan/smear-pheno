@@ -1,0 +1,67 @@
+CutFlow Results
+
+After incorporating the optimum smearing
+CA11, MET
+nJet >= 2                                 --> 120568100223
+Jet.PT > 100, abs(Jet.Eta) < 2.4          --> 17528992197
+MET > 200 (all preselection)              --> 197180
+electron veto (p_T > 10, |eta| < 2.4)     --> 197177
+muon veto (p_T > 10, |eta| < 2.4)         --> 197177
+met/MT > 0.15                             --> 160377
+|Delta Eta| < 1.1 (CA11)                   --> 89688
+|Delta Phi| < 0.4 (CA11)                   --> 84363
+
+
+CA11, MHT
+nJet >= 2                                 --> 120568100223
+Jet.PT > 100, abs(Jet.Eta) < 2.4          --> 17528992197
+MET > 200 (all preselection)              --> 172843
+electron veto (p_T > 10, |eta| < 2.4)     --> 172840
+muon veto (p_T > 10, |eta| < 2.4)         --> 172840
+met/MT > 0.15                             --> 133308
+|Delta Eta| < 1.1 (CA11)                   --> 61716
+|Delta Phi| < 0.4 (CA11)                   --> 56391
+
+CA11, MHTSmeared
+nJet >= 2                                 --> 120568100223
+Jet.PT > 100, abs(Jet.Eta) < 2.4          --> 17528992197
+MET > 200 (all preselection)              --> 1103636
+electron veto (p_T > 10, |eta| < 2.4)     --> 1103633
+muon veto (p_T > 10, |eta| < 2.4)         --> 1103629
+met/MT > 0.15                             --> 810051
+|Delta Eta| < 1.1 (CA11)                   --> 302656
+|Delta Phi| < 0.4 (CA11)                   --> 265229 
+
+After changing lumi to 37, and Muon p_T > 20, (still using AK4 jets)
+CA11, MET
+Total number of QCD events before any cuts is 124305450707 
+
+nJet >= 2                                 --> 124262387416
+Jet.PT > 100, abs(Jet.Eta) < 2.4          --> 18066092237
+MET > 200 (all preselection)              --> 203222
+electron veto (p_T > 10, |eta| < 2.4)     --> 203219
+muon veto (p_T > 10, |eta| < 2.4)         --> 203219
+met/MT > 0.15                             --> 165291
+|Delta Eta| < 1.1 (CA11)                   --> 92436
+|Delta Phi| < 0.4 (CA11)                   --> 86948 
+
+CA11, MHT
+nJet >= 2                                 --> 124262387416
+Jet.PT > 100, abs(Jet.Eta) < 2.4          --> 18066092237
+MET > 200 (all preselection)              --> 178139
+electron veto (p_T > 10, |eta| < 2.4)     --> 178136
+muon veto (p_T > 10, |eta| < 2.4)         --> 178136
+met/MT > 0.15                             --> 137393
+|Delta Eta| < 1.1 (CA11)                   --> 63607
+|Delta Phi| < 0.4 (CA11)                   --> 58119 
+
+CA11, MHTSmeared
+nJet >= 2                                 --> 124262387416
+Jet.PT > 100, abs(Jet.Eta) < 2.4          --> 18066092237
+MET > 200 (all preselection)              --> 1137453
+electron veto (p_T > 10, |eta| < 2.4)     --> 1137449
+muon veto (p_T > 10, |eta| < 2.4)         --> 1137446
+met/MT > 0.15                             --> 834872
+|Delta Eta| < 1.1 (CA11)                   --> 311929
+|Delta Phi| < 0.4 (CA11)                   --> 273356 
+
