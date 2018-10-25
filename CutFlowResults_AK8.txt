@@ -1,0 +1,38 @@
+CutFlow Results
+
+from sampleMacro_cutflow.py
+Total number of QCD events before any cuts is 120609883254 
+
+After including options for AK8 and CA11, and incorporating optimum smearing
+AK8; MET
+nJet >= 2                                 --> 120568100223
+Jet.PT > 100, abs(Jet.Eta) < 2.4          --> 17528992197
+MET > 200 (all preselection)              --> 197180
+electron veto (p_T > 10, |eta| < 2.4)     --> 197177
+muon veto (p_T > 10, |eta| < 2.4)         --> 197177
+met/MT > 0.15                             --> 159862
+|Delta Eta| < 1.1 (AK8)                   --> 90679
+|Delta Phi| < 0.4 (AK8)                   --> 85351 
+
+AK8, MHT
+nJet >= 2                                 --> 120568100223
+Jet.PT > 100, abs(Jet.Eta) < 2.4          --> 17528992197
+MET > 200 (all preselection)              --> 172843
+electron veto (p_T > 10, |eta| < 2.4)     --> 172840
+muon veto (p_T > 10, |eta| < 2.4)         --> 172840
+met/MT > 0.15                             --> 135440
+|Delta Eta| < 1.1 (AK8)                   --> 62390
+|Delta Phi| < 0.4 (AK8)                   --> 57062 
+
+AK8, MHTSmeared
+nJet >= 2                                 --> 120568100223
+Jet.PT > 100, abs(Jet.Eta) < 2.4          --> 17528992197
+MET > 200 (all preselection)              --> 1103636
+electron veto (p_T > 10, |eta| < 2.4)     --> 1103633
+muon veto (p_T > 10, |eta| < 2.4)         --> 1103629
+met/MT > 0.15                             --> 396754
+|Delta Eta| < 1.1 (AK8)                   --> 312001
+|Delta Phi| < 0.4 (AK8)                   --> 274456 
+
+
+
